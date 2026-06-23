@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  - name: AgentSave Documentation
-    url: https://docs.agentsave.io
-    about: Read the docs before filing an issue — your question may already be answered.
+  - name: Documentation
+    url: https://github.com/aks-builds/agentsave#readme
+    about: Read the README before filing an issue — your question may already be answered.
   - name: Security Vulnerability
-    url: mailto:security@agentsave.io
+    url: mailto:its.aks@outlook.com
     about: Do NOT file public issues for security vulnerabilities. Email us instead.
+  - name: Discussions
+    url: https://github.com/aks-builds/agentsave/discussions
+    about: Ask questions and share ideas in Discussions.

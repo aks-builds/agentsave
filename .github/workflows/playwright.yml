@@ -1,8 +1,20 @@
 name: Playwright E2E
 
+# Full Playwright E2E tests require agentsave-ui + agentsave-dashboard repos.
+# Run manually via workflow_dispatch once those repos are on GitHub,
+# or trigger automatically from aks-builds/agentsave-ui on push to main.
+
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dashboard_ref:
+        description: "agentsave-dashboard branch/tag"
+        required: false
+        default: "main"
+      ui_ref:
+        description: "agentsave-ui branch/tag"
+        required: false
+        default: "main"
 
 jobs:
   e2e:
@@ -10,62 +22,64 @@ jobs:
     timeout-minutes: 30
 
     steps:
-      - name: Checkout agentsave (SDK + fixtures)
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Checkout agentsave-dashboard
         uses: actions/checkout@v4
         with:
           repository: aks-builds/agentsave-dashboard
+          ref: ${{ inputs.dashboard_ref }}
           path: agentsave-dashboard
 
       - name: Checkout agentsave-ui
         uses: actions/checkout@v4
         with:
           repository: aks-builds/agentsave-ui
+          ref: ${{ inputs.ui_ref }}
           path: agentsave-ui
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install dashboard backend dependencies
+      - name: Install SDK
+        run: pip install -e ".[dev]"
+
+      - name: Install dashboard backend
         working-directory: agentsave-dashboard
-        run: pip install -r requirements-dev.txt
+        run: pip install -e ".[dev]"
 
       - name: Install UI dependencies
         working-directory: agentsave-ui
         run: npm ci
 
-      - name: Install Playwright browser (Chromium only)
+      - name: Install Playwright browsers
         working-directory: agentsave-ui
         run: npx playwright install --with-deps chromium
 
       - name: Start dashboard backend
         working-directory: agentsave-dashboard
-        run: uvicorn main:app --host 0.0.0.0 --port 8000 &
+        run: DATABASE_URL=":memory:" uvicorn agentsave_dashboard.main:app --port 8000 &
 
-      - name: Wait for dashboard backend to be ready
-        run: npx wait-on http://localhost:8000/api/health --timeout 30000
+      - name: Wait for backend
+        run: sleep 4
 
-      - name: Start UI dev server
+      - name: Start UI
         working-directory: agentsave-ui
         run: npm run dev &
 
-      - name: Wait for UI to be ready
+      - name: Wait for UI
         run: npx wait-on http://localhost:3000 --timeout 60000
 
       - name: Run Playwright tests
         working-directory: agentsave-ui
-        run: npx playwright test
+        run: npx playwright test --reporter=list
 
-      - name: Upload Playwright report on failure
+      - name: Upload failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:

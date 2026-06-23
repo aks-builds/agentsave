@@ -15,7 +15,7 @@ Older versions are not supported. Please upgrade to the latest release.
 **Do not file a public GitHub issue for security vulnerabilities.**
 
 If you discover a security vulnerability in AgentSave, please report it
-privately by emailing **security@agentsave.io**.
+privately by emailing **its.aks@outlook.com**.
 
 Include in your report:
 - A description of the vulnerability and its potential impact

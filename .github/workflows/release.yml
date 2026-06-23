@@ -1,0 +1,145 @@
+name: release
+
+# Manually-dispatched release-prep. Bumps version in pyproject.toml,
+# rolls CHANGELOG.md [Unreleased] → [VERSION] - DATE, opens a release/* PR
+# with auto-merge. Once CI (the required `SDK Tests / test` check) passes,
+# the PR merges and publish.yml ships to PyPI + cuts a GitHub Release.
+#
+# Required secrets:
+#   RELEASE_PR_PAT  — user PAT (repo scope). GITHUB_TOKEN cannot trigger CI.
+#   PYPI_TOKEN      — consumed by publish.yml
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Version bump"
+        required: true
+        type: choice
+        default: patch
+        options: [prerelease, patch, minor, major]
+      preid:
+        description: "Prerelease id (when bump = prerelease)"
+        required: false
+        default: alpha
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  open-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_PR_PAT }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Configure git identity
+        run: |
+          git config user.name "aks-builds"
+          git config user.email "its.aks@outlook.com"
+
+      - name: Install SDK and run tests
+        run: |
+          pip install -e ".[dev]"
+          pytest tests/ -q
+
+      - name: Bump version in pyproject.toml
+        id: bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT=$(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['project']['version'])")
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${CURRENT%-*}"
+          PREID=""
+          if [[ "$CURRENT" == *"-"* ]]; then PREID="${CURRENT#*-}"; fi
+
+          case "${{ inputs.bump }}" in
+            major)      VERSION="$((MAJOR+1)).0.0" ;;
+            minor)      VERSION="${MAJOR}.$((MINOR+1)).0" ;;
+            patch)      VERSION="${MAJOR}.${MINOR}.$((PATCH+1))" ;;
+            prerelease)
+              if [[ -n "$PREID" ]]; then
+                NUM="${PREID##*\.}"; BASE="${PREID%\.*}"
+                VERSION="${MAJOR}.${MINOR}.${PATCH}-${BASE}.$((NUM+1))"
+              else
+                VERSION="${MAJOR}.${MINOR}.${PATCH}-${{ inputs.preid }}.0"
+              fi
+              ;;
+          esac
+
+          # Write new version into pyproject.toml
+          python - <<EOF
+          import re, pathlib
+          path = pathlib.Path("pyproject.toml")
+          content = path.read_text()
+          updated = re.sub(r'^version = ".*?"', f'version = "${VERSION}"', content, flags=re.MULTILINE)
+          path.write_text(updated)
+          print(f"pyproject.toml → {VERSION}")
+          EOF
+
+          if printf '%s' "$VERSION" | grep -q -- '-'; then
+            PRERELEASE=true
+          else
+            PRERELEASE=false
+          fi
+
+          echo "version=$VERSION"            >> "$GITHUB_OUTPUT"
+          echo "branch=release/v$VERSION"   >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE"      >> "$GITHUB_OUTPUT"
+
+      - name: Roll CHANGELOG [Unreleased] → [VERSION] - DATE
+        shell: bash
+        run: |
+          python - <<'EOF'
+          import re, pathlib, datetime
+          v = "${{ steps.bump.outputs.version }}"
+          d = datetime.date.today().isoformat()
+          path = pathlib.Path("CHANGELOG.md")
+          content = path.read_text()
+          updated = content.replace(
+              "## [Unreleased]",
+              f"## [Unreleased]\n\n## [{v}] - {d}"
+          )
+          path.write_text(updated)
+          print(f"CHANGELOG.md → [{v}] - {d}")
+          EOF
+
+      - name: Extract release notes
+        shell: bash
+        run: |
+          python - <<'EOF'
+          import re, pathlib
+          v = "${{ steps.bump.outputs.version }}"
+          content = pathlib.Path("CHANGELOG.md").read_text()
+          # Find section for this version
+          pattern = rf"## \[{re.escape(v)}\][^\n]*\n(.*?)(?=\n## \[|\Z)"
+          m = re.search(pattern, content, re.DOTALL)
+          notes = m.group(1).strip() if m else f"Release {v}."
+          pathlib.Path("release-notes.md").write_text(notes)
+          print(notes[:200])
+          EOF
+
+      - name: Push release branch and open PR
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PR_PAT }}
+        run: |
+          set -euo pipefail
+          git checkout -b "${{ steps.bump.outputs.branch }}"
+          git add pyproject.toml CHANGELOG.md
+          git commit -m "chore(release): ${{ steps.bump.outputs.version }}"
+          git push origin "${{ steps.bump.outputs.branch }}"
+          PR_URL=$(gh pr create \
+            --base main \
+            --head "${{ steps.bump.outputs.branch }}" \
+            --title "chore(release): ${{ steps.bump.outputs.version }}" \
+            --body-file release-notes.md)
+          echo "PR: $PR_URL"
+          gh pr merge "$PR_URL" --auto --squash

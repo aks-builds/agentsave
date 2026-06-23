@@ -1,5 +1,9 @@
 name: Dashboard Tests
 
+# Full dashboard integration tests live in aks-builds/agentsave-dashboard.
+# This workflow verifies the SDK installs cleanly (a prerequisite for the
+# dashboard backend which pip-installs agentsave as a dependency).
+
 on:
   push:
     branches: [main]
@@ -11,18 +15,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout agentsave-dashboard
-        uses: actions/checkout@v4
-        with:
-          repository: aks-builds/agentsave-dashboard
+      - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
-        run: pip install -r requirements-dev.txt
+      - name: Install SDK in editable mode
+        run: pip install -e ".[dev]"
 
-      - name: Run Dashboard tests
+      - name: Verify SDK imports cleanly
+        run: python -c "from agentsave import supervise, loop; print('SDK OK')"
+
+      - name: Run SDK tests
         run: pytest tests/ -v --tb=short

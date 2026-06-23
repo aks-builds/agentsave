@@ -1,0 +1,120 @@
+name: publish
+
+# Fires when a release/* PR merges into main.
+# Builds the Python distribution, publishes to PyPI, tags, and cuts a GitHub Release.
+#
+# Required secrets: PYPI_TOKEN
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or SHA to publish from"
+        required: false
+        default: main
+
+permissions:
+  contents: write
+
+jobs:
+  publish-pypi:
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.pull_request.merged == true &&
+       startsWith(github.event.pull_request.head.ref, 'release/'))
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
+      prerelease: ${{ steps.ver.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || 'main' }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Configure git identity
+        run: |
+          git config user.name "aks-builds"
+          git config user.email "its.aks@outlook.com"
+
+      - name: Resolve version from pyproject.toml
+        id: ver
+        run: |
+          VERSION=$(python -c "import tomllib; d=tomllib.load(open('pyproject.toml','rb')); print(d['project']['version'])")
+          if printf '%s' "$VERSION" | grep -q -- '-'; then
+            PRERELEASE=true
+          else
+            PRERELEASE=false
+          fi
+          echo "version=$VERSION"       >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION"          >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+      - name: Abort if tag already exists
+        run: |
+          if git rev-parse "refs/tags/${{ steps.ver.outputs.tag }}" >/dev/null 2>&1; then
+            echo "Tag ${{ steps.ver.outputs.tag }} already exists — nothing to do."
+            exit 1
+          fi
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Build distribution
+        run: python -m build
+
+      - name: Publish to PyPI
+        run: twine upload dist/* --non-interactive
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  github-release:
+    needs: [publish-pypi]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || 'main' }}
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "aks-builds"
+          git config user.email "its.aks@outlook.com"
+
+      - name: Extract release notes from CHANGELOG
+        run: |
+          python - <<'EOF'
+          import re, pathlib
+          v = "${{ needs.publish-pypi.outputs.version }}"
+          content = pathlib.Path("CHANGELOG.md").read_text()
+          pattern = rf"## \[{re.escape(v)}\][^\n]*\n(.*?)(?=\n## \[|\Z)"
+          m = re.search(pattern, content, re.DOTALL)
+          notes = m.group(1).strip() if m else f"Release {v}."
+          pathlib.Path("release-notes.md").write_text(notes)
+          EOF
+
+      - name: Tag and push
+        run: |
+          git tag "${{ needs.publish-pypi.outputs.tag }}"
+          git push origin "${{ needs.publish-pypi.outputs.tag }}"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          FLAG=""
+          [ "${{ needs.publish-pypi.outputs.prerelease }}" = "true" ] && FLAG="--prerelease"
+          gh release create "${{ needs.publish-pypi.outputs.tag }}" \
+            --title "AgentSave ${{ needs.publish-pypi.outputs.tag }}" \
+            --notes-file release-notes.md \
+            --target main $FLAG

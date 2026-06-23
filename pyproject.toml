@@ -6,8 +6,32 @@ build-backend = "hatchling.build"
 name = "agentsave"
 version = "0.1.0"
 description = "Save 30% on AI agent costs. One line of code. No accuracy loss."
+readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }
+authors = [{ name = "Aditya Kumar Singh", email = "its.aks@outlook.com" }]
+keywords = [
+    "ai-agents", "llm", "langchain", "autogen", "crewai", "langraph",
+    "smolagents", "token-optimization", "cost-reduction", "agent-efficiency",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+[project.urls]
+Homepage = "https://github.com/aks-builds/agentsave"
+Repository = "https://github.com/aks-builds/agentsave"
+Issues = "https://github.com/aks-builds/agentsave/issues"
+Changelog = "https://github.com/aks-builds/agentsave/blob/main/CHANGELOG.md"
+
 dependencies = [
     "scikit-learn>=1.4.0",
     "tiktoken>=0.7.0",
@@ -28,6 +52,8 @@ dev = [
     "pytest-mock>=3.12.0",
     "langchain>=0.3.0",
     "langchain-core>=0.3.0",
+    "build>=1.0.0",
+    "twine>=5.0.0",
 ]
 
 [project.scripts]
@@ -36,3 +62,6 @@ agentsave = "agentsave.cli.main:cli"
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["agentsave"]
