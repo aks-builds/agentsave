@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling>=1.21"]
 build-backend = "hatchling.build"
 
 [project]
@@ -25,13 +25,6 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-
-[project.urls]
-Homepage = "https://github.com/aks-builds/agentsave"
-Repository = "https://github.com/aks-builds/agentsave"
-Issues = "https://github.com/aks-builds/agentsave/issues"
-Changelog = "https://github.com/aks-builds/agentsave/blob/main/CHANGELOG.md"
-
 dependencies = [
     "scikit-learn>=1.4.0",
     "tiktoken>=0.7.0",
@@ -39,6 +32,12 @@ dependencies = [
     "click>=8.1.0",
     "rich>=13.7.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/aks-builds/agentsave"
+Repository = "https://github.com/aks-builds/agentsave"
+Issues = "https://github.com/aks-builds/agentsave/issues"
+Changelog = "https://github.com/aks-builds/agentsave/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 langchain = ["langchain>=0.3.0", "langchain-core>=0.3.0"]
