@@ -70,7 +70,7 @@ PPD (append-prefill decode) routing for multi-turn agent workloads, delivering ~
 
 ## 🚀 Quick Start
 
-1. Install the SDK: `pip install git+https://github.com/aks-builds/agentsave.git`
+1. Install the SDK: `pip install agentsave`
 2. Wrap your agent:
    ```python
    from agentsave import supervise
@@ -85,20 +85,6 @@ PPD (append-prefill decode) routing for multi-turn agent workloads, delivering ~
 ## 📦 Installation
 
 **SDK (all agent frameworks):**
-
-> **v0.1.0 is not yet on PyPI.** Install directly from GitHub until the first release is tagged and published:
-
-```bash
-# Install from GitHub (current)
-pip install git+https://github.com/aks-builds/agentsave.git
-
-# With specific framework support:
-pip install "git+https://github.com/aks-builds/agentsave.git#egg=agentsave[langchain]"
-pip install "git+https://github.com/aks-builds/agentsave.git#egg=agentsave[all]"
-```
-
-Once v0.1.0 is released to PyPI (trigger with `Actions → release → Run workflow`):
-
 ```bash
 pip install agentsave
 
