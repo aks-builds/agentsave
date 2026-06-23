@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: AgentSave Documentation
+    url: https://docs.agentsave.io
+    about: Read the docs before filing an issue — your question may already be answered.
+  - name: Security Vulnerability
+    url: mailto:security@agentsave.io
+    about: Do NOT file public issues for security vulnerabilities. Email us instead.

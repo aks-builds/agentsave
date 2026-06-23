@@ -1,0 +1,8 @@
+# Global owners — all files require review from @aks-builds
+* @aks-builds
+
+# SDK core
+agentsave/ @aks-builds
+
+# Tests
+tests/ @aks-builds

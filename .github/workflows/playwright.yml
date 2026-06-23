@@ -1,0 +1,74 @@
+name: Playwright E2E
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout agentsave (SDK + fixtures)
+        uses: actions/checkout@v4
+
+      - name: Checkout agentsave-dashboard
+        uses: actions/checkout@v4
+        with:
+          repository: aks-builds/agentsave-dashboard
+          path: agentsave-dashboard
+
+      - name: Checkout agentsave-ui
+        uses: actions/checkout@v4
+        with:
+          repository: aks-builds/agentsave-ui
+          path: agentsave-ui
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dashboard backend dependencies
+        working-directory: agentsave-dashboard
+        run: pip install -r requirements-dev.txt
+
+      - name: Install UI dependencies
+        working-directory: agentsave-ui
+        run: npm ci
+
+      - name: Install Playwright browser (Chromium only)
+        working-directory: agentsave-ui
+        run: npx playwright install --with-deps chromium
+
+      - name: Start dashboard backend
+        working-directory: agentsave-dashboard
+        run: uvicorn main:app --host 0.0.0.0 --port 8000 &
+
+      - name: Wait for dashboard backend to be ready
+        run: npx wait-on http://localhost:8000/api/health --timeout 30000
+
+      - name: Start UI dev server
+        working-directory: agentsave-ui
+        run: npm run dev &
+
+      - name: Wait for UI to be ready
+        run: npx wait-on http://localhost:3000 --timeout 60000
+
+      - name: Run Playwright tests
+        working-directory: agentsave-ui
+        run: npx playwright test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: agentsave-ui/playwright-report/
+          retention-days: 7
