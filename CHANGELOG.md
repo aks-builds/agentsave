@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-06-23
+
 ### Added
 
 - `supervise(agent)` drop-in wrapper for LangChain, LangGraph, AutoGen, CrewAI, and Smolagents
