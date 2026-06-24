@@ -54,6 +54,8 @@ dev = [
     "langgraph>=0.2.0",
     "build>=1.0.0",
     "twine>=5.0.0",
+    "pyautogen>=0.4.0",
+    "crewai>=0.80.0",
 ]
 
 [project.scripts]

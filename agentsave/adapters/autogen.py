@@ -27,7 +27,12 @@ class AutoGenAdapter(BaseAdapter):
         )
         budget.consume(count_tokens(message))
 
-        def _process_message(messages: list[dict], sender: Any, **kw: Any) -> tuple[bool, str | None]:
+        def _process_message(
+            agent_self: Any,
+            messages: list[dict] | None = None,
+            sender: Any = None,
+            config: Any = None,
+        ) -> tuple[bool, str | None]:
             if budget.is_exhausted() or early_exit.should_exit():
                 state.should_exit_early = True
                 return True, "Task complete (AgentSave budget/early-exit limit)."
