@@ -70,10 +70,21 @@ class LangChainAdapter(BaseAdapter):
         callback = _SupervisorCallback(ctx_filter, early_exit, budget, state)
 
         # Inject callback — works without importing langchain (duck-typed)
-        existing_callbacks = kwargs.pop("callbacks", None) or []
-        kwargs["callbacks"] = list(existing_callbacks) + [callback]
-
-        result = self._agent.invoke(input, **kwargs)
+        agent_type = type(self._agent).__name__
+        # LCEL Runnables (RunnableSequence, RunnableParallel, etc.) accept callbacks via config
+        # Old-style AgentExecutor accepts callbacks as a direct kwarg
+        if "Runnable" in agent_type or "Chain" in agent_type:
+            existing_config = kwargs.pop("config", None) or {}
+            if isinstance(existing_config, dict):
+                existing_cbs = list(existing_config.get("callbacks", []))
+            else:
+                existing_cbs = []
+            config = {**existing_config, "callbacks": existing_cbs + [callback]}
+            result = self._agent.invoke(input, config=config, **kwargs)
+        else:
+            existing_callbacks = kwargs.pop("callbacks", None) or []
+            kwargs["callbacks"] = list(existing_callbacks) + [callback]
+            result = self._agent.invoke(input, **kwargs)
 
         output_tokens = count_tokens(str(result))
         budget.consume(output_tokens)
