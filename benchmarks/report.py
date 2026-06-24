@@ -4,8 +4,8 @@ from benchmarks.runner import BenchmarkResult
 
 def write_report(result: BenchmarkResult, path: str = "BENCHMARKS.md") -> None:
     lines = [
-        "# AgentSave Benchmarks\n",
-        "## Current results — 20-task benchmark set\n",
+        "# AgentSave Benchmarks",
+        f"## Current results — {len(result.per_task)}-task benchmark set",
         "| Metric | Value | Notes |",
         "|---|---|---|",
         f"| Token reduction | {result.reduction_pct:.1f}% | {len(result.per_task)}-task set |",
@@ -26,7 +26,8 @@ def write_report(result: BenchmarkResult, path: str = "BENCHMARKS.md") -> None:
         "|---|---|---|---|---|---|",
     ]
     for t in result.per_task:
-        reduction = (t["tokens_before"] - t["tokens_after"]) / t["tokens_before"] * 100
+        tb = t["tokens_before"]
+        reduction = round((tb - t["tokens_after"]) / tb * 100, 1) if tb > 0 else 0.0
         lines.append(
             f"| {t['id']} | {t['tokens_before']} | {t['tokens_after']} "
             f"| {reduction:.1f}% | {'✓' if t['correct_without'] else '✗'} "

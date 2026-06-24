@@ -11,7 +11,7 @@ def test_write_report_creates_file():
     try:
         write_report(result, path)
         assert os.path.exists(path)
-        content = open(path).read()
+        content = open(path, encoding="utf-8").read()
         assert "Token reduction" in content
         assert "Accuracy" in content
         assert str(round(result.reduction_pct, 1)) in content
