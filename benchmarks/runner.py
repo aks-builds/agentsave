@@ -85,3 +85,15 @@ def run_benchmark() -> BenchmarkResult:
             "correct_with": correct_with,
         })
     return result
+
+
+if __name__ == "__main__":
+    import sys
+    result = run_benchmark()
+    print(f"Token reduction: {result.reduction_pct:.1f}%")
+    print(f"Accuracy without: {result.accuracy_without:.1%}")
+    print(f"Accuracy with:    {result.accuracy_with:.1%}")
+    from benchmarks.report import write_report
+    out = sys.argv[1] if len(sys.argv) > 1 else "BENCHMARKS.md"
+    write_report(result, out)
+    print(f"Report written to {out}")
