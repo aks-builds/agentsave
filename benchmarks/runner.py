@@ -8,23 +8,6 @@ from benchmarks.accuracy import matches_ground_truth
 
 
 @dataclass
-class TaskResult:
-    id: str
-    tokens_before: int
-    tokens_after: int
-    answer_without: str
-    answer_with: str
-    correct_without: bool
-    correct_with: bool
-
-    @property
-    def reduction_pct(self) -> float:
-        if self.tokens_before == 0:
-            return 0.0
-        return (self.tokens_before - self.tokens_after) / self.tokens_before * 100
-
-
-@dataclass
 class BenchmarkResult:
     per_task: list = field(default_factory=list)
 
@@ -71,7 +54,7 @@ def _simulate_agent_answer_filtered(
         eed.record(gain)
         if eed.should_exit():
             break
-        if cf.is_relevant(output):
+        if gain >= relevance_threshold:
             kept.append(output)
             tokens_consumed += count_tokens(output)
 
@@ -90,8 +73,6 @@ def run_benchmark() -> BenchmarkResult:
         correct_without = matches_ground_truth(answer_without, truth)
 
         answer_with, tokens_after = _simulate_agent_answer_filtered(goal, outputs)
-        if tokens_after == 0:
-            tokens_after = 1
         correct_with = matches_ground_truth(answer_with, truth)
 
         result.per_task.append({
