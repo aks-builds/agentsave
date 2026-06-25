@@ -27,25 +27,32 @@ class SmolagentsAdapter(BaseAdapter):
         )
         budget.consume(count_tokens(task))
 
-        original_callbacks = None
-        if hasattr(self._agent, "step_callbacks"):
-            original_callbacks = list(self._agent.step_callbacks)
+        def _supervisor_callback(memory_step: Any) -> None:
+            content = str(getattr(memory_step, "observations", memory_step))
+            budget.consume(count_tokens(content))
+            gain = ctx_filter.score(content)
+            early_exit.record(gain)
+            if early_exit.should_exit() or budget.is_exhausted():
+                state.should_exit_early = True
 
-            def _supervisor_callback(memory_step: Any) -> None:
-                content = str(getattr(memory_step, "observations", memory_step))
-                budget.consume(count_tokens(content))
-                gain = ctx_filter.score(content)
-                early_exit.record(gain)
-                if early_exit.should_exit() or budget.is_exhausted():
-                    state.should_exit_early = True
-
-            self._agent.step_callbacks = original_callbacks + [_supervisor_callback]
+        step_callbacks = getattr(self._agent, "step_callbacks", None)
+        # smolagents >=1.10 uses CallbackRegistry (has .register()); older API
+        # and mocks use a plain list — handle both so unit tests keep working.
+        using_registry = step_callbacks is not None and hasattr(step_callbacks, "register")
+        if using_registry:
+            snapshot = {cls: list(cbs) for cls, cbs in step_callbacks._callbacks.items()}
+            step_callbacks.register(object, _supervisor_callback)
+        elif step_callbacks is not None:
+            original_list = list(step_callbacks)
+            self._agent.step_callbacks = original_list + [_supervisor_callback]
 
         try:
             result = self._agent.run(task, **kwargs)
         finally:
-            if original_callbacks is not None:
-                self._agent.step_callbacks = original_callbacks
+            if using_registry:
+                step_callbacks._callbacks = snapshot
+            elif step_callbacks is not None:
+                self._agent.step_callbacks = original_list
 
         state.tokens_consumed = budget.consumed
         state.task_success = not state.should_exit_early
