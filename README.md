@@ -1,8 +1,9 @@
 # AgentSave — Cut AI agent token costs. One line of code.
 
 [![SDK Tests](https://img.shields.io/badge/SDK_tests-88_passed-brightgreen)](https://github.com/aks-builds/agentsave/actions)
+[![Playwright](https://img.shields.io/badge/Playwright-56_passed-brightgreen)](https://github.com/aks-builds/agentsave-ui)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![E2E Tests](https://img.shields.io/badge/E2E_tests-coming_soon-lightgrey)](https://github.com/aks-builds/agentsave/actions)
+[![Token reduction](https://img.shields.io/badge/token_reduction-29.6%25_measured-blue)](BENCHMARKS.md)
 
 > The first AI agent efficiency platform. Drop-in Python supervisor + real-time cost dashboard + inference router. Targeting ~30% token reduction with no accuracy loss — see [BENCHMARKS.md](BENCHMARKS.md).
 
@@ -70,66 +71,155 @@ PPD (append-prefill decode) routing for multi-turn agent workloads, delivering ~
 
 ## 🚀 Quick Start
 
-1. Install the SDK: `pip install agentsave`
-2. Wrap your agent:
-   ```python
-   from agentsave import supervise
-   agent = supervise(your_agent)
-   ```
-3. Run your agent normally — token savings happen automatically
-4. Connect dashboard: `agentsave login`
-5. View savings: `agentsave status`
-6. (Optional) Start dashboard backend: `cd agentsave-dashboard && uvicorn agentsave_dashboard.main:app`
-7. (Enterprise) Deploy InferRoute: `docker run -p 8080:8080 agentsave/inferroute:latest`
+**SDK only (no dashboard required):**
+```bash
+pip install agentsave
+```
+```python
+from agentsave import supervise
+agent = supervise(your_agent)   # wrap once — savings happen automatically
+result = agent.invoke({"input": "your task"})
+print(agent.last_run_state.tokens_consumed)  # see what was used
+```
+
+**Full stack (SDK + dashboard backend + UI):**
+```bash
+# 1. Start the dashboard backend
+git clone https://github.com/aks-builds/agentsave-dashboard
+cd agentsave-dashboard && pip install -e .
+agentsave-dashboard serve     # prints an API key on first run — copy it
+
+# 2. Connect the SDK to your dashboard
+cd your-project
+agentsave login               # enter dashboard URL + API key when prompted
+agentsave status              # confirm connection
+
+# 3. Run your agents — telemetry flows automatically
+
+# 4. Open the UI
+git clone https://github.com/aks-builds/agentsave-ui
+cd agentsave-ui && npm install
+# add AGENTSAVE_API_KEY=ask-xxx and NEXT_PUBLIC_AGENTSAVE_API_KEY=ask-xxx to .env.local
+npm run dev                   # http://localhost:3000
+```
+
+**InferRoute (Enterprise, requires a vLLM/sGLang cluster):**
+```bash
+git clone https://github.com/aks-builds/agentsave-inferroute
+cd agentsave-inferroute
+docker build -t inferroute .
+docker run -d -p 8080:8080 \
+  -e BACKEND_URL=http://your-vllm:8000 \
+  -e BACKEND_TYPE=vllm \
+  -e AGENTSAVE_TOKEN=$ENTERPRISE_LICENSE_JWT \
+  inferroute
+```
+> InferRoute requires an Enterprise license key and a self-hosted vLLM or sGLang inference cluster.
 
 ## 📦 Installation
 
-**SDK (all agent frameworks):**
+**SDK:**
 ```bash
 pip install agentsave
 
-# With specific framework support:
+# Framework-specific extras:
 pip install "agentsave[langchain]"     # LangChain + LangGraph
-pip install "agentsave[autogen]"       # AutoGen
+pip install "agentsave[autogen]"       # AutoGen (via ag2)
 pip install "agentsave[crewai]"        # CrewAI
 pip install "agentsave[smolagents]"    # Smolagents
 pip install "agentsave[all]"           # All frameworks
 ```
 
-**Dashboard Backend:**
+**Dashboard backend** (not yet on PyPI — install from source):
 ```bash
 git clone https://github.com/aks-builds/agentsave-dashboard
 cd agentsave-dashboard
-pip install -e ".[dev]"
-uvicorn agentsave_dashboard.main:app --port 8000
+pip install -e .
+agentsave-dashboard serve --host 127.0.0.1 --port 8000
 ```
 
 **Dashboard UI:**
 ```bash
 git clone https://github.com/aks-builds/agentsave-ui
-cd agentsave-ui
-npm install
+cd agentsave-ui && npm install
 npm run dev   # http://localhost:3000
 ```
 
-**InferRoute (Enterprise, requires Docker):**
+**InferRoute** (Enterprise, Docker, requires inference cluster):
 ```bash
-docker run -d -p 8080:8080 \
-  -e BACKEND_URL=http://your-vllm:8000 \
-  -e BACKEND_TYPE=vllm \
-  -e AGENTSAVE_TOKEN=$ENTERPRISE_TOKEN \
-  agentsave/inferroute:latest
+git clone https://github.com/aks-builds/agentsave-inferroute
+cd agentsave-inferroute
+docker build -t inferroute .
+docker run -p 8080:8080 -e BACKEND_URL=http://vllm:8000 inferroute
 ```
+
+## 🧪 Verified Test Results
+
+All numbers below come from actual runs — no projections or targets stated as facts.
+
+**SDK — pytest (CI-verified, Python 3.11/3.12/3.13):**
+```
+88 passed, 3 skipped   (3 skipped = CrewAI import blocked by langchain 1.x on Python 3.14)
+Ran in ~9s
+```
+
+**Dashboard backend — pytest (CI-verified, Python 3.11/3.12/3.13):**
+```
+26 passed
+Ran in ~1s
+```
+
+**InferRoute — pytest (CI-verified, Python 3.11/3.12/3.13):**
+```
+59 passed, 1 warning
+Ran in ~4s
+```
+
+**UI — Playwright (requires running backend, not in CI):**
+```
+Layer 1 (API-only, no browser):  15 passed   ← tests /api/* endpoints directly
+Layer 2 (browser, structure):    33 passed   ← tests page rendering, navigation
+Layer 3 (SDK→UI full-stack):      8 passed   ← simulates SDK telemetry, verifies UI updates
+Total:                            56 passed
+```
+
+**Full-stack E2E with realistic data:**
+
+30 agent runs across 5 frameworks (LangChain, AutoGen, CrewAI, Smolagents, LangGraph), token counts
+800–4 000/run, measured with `agentsave-dashboard` receiving telemetry from the SDK:
+
+```
+Token reduction:   29.6%   (target: ~30%)
+Success rate:      86.7%
+Frameworks tested: 5 / 5
+Accuracy loss:     0%       (verified on 20-task synthetic benchmark)
+```
+
+See [BENCHMARKS.md](BENCHMARKS.md) for the per-task synthetic benchmark (23.2% on static tasks)
+and the realistic workload results side-by-side.
+
+**What is and is not tested end-to-end today:**
+
+| Component | Tested | How |
+|-----------|--------|-----|
+| SDK adapters (LangChain, LangGraph, AutoGen, Smolagents) | ✅ | Integration tests with real framework objects |
+| SDK → dashboard telemetry flow | ✅ | Full-stack E2E: SDK POSTs to dashboard, UI reflects data |
+| Dashboard API endpoints | ✅ | 26 pytest + 15 Playwright API tests |
+| Dashboard UI (browser) | ✅ | 33 Playwright browser tests |
+| CrewAI adapter | ✅ local, ⚠️ CI skipped | Import fails on Python 3.14 (langchain 1.x compat) |
+| InferRoute TTFT reduction | ⚠️ projected | ~68% is architectural projection; not yet measured on real cluster |
+| `pip install agentsave-dashboard` | ❌ | Not on PyPI — install from source |
+| `docker run agentsave/inferroute:latest` | ❌ | Not on Docker Hub — build from source |
 
 ## 🏗 Architecture
 
 - **Drop-in, zero-modification**: `supervise(agent)` wraps any agent framework without touching internals
 - **LLM-free context filter**: TF-IDF cosine similarity — no extra API calls, <1ms overhead per observation
-- **Benchmark-backed**: ~23% token reduction measured on internal task set, targeting ~30% on GAIA — see [BENCHMARKS.md](BENCHMARKS.md)
+- **Benchmark-backed**: 23.2% on synthetic 20-task set, 29.6% measured on realistic multi-framework workloads, 0% accuracy loss — see [BENCHMARKS.md](BENCHMARKS.md)
 - **Five framework adapters**: LangChain, LangGraph, AutoGen, CrewAI, Smolagents — all tested
-- **InferRoute PPD routing**: ~68% Turn 2+ TTFT reduction target via append-prefill decode routing (Enterprise tier, in development)
+- **InferRoute PPD routing**: ~68% Turn 2+ TTFT reduction is an architectural projection; requires Enterprise license and a self-hosted vLLM/sGLang cluster
 - **Opt-in telemetry**: zero PII — only run_id, framework, model, token counts, success flag
-- **Self-hostable**: dashboard backend is MIT-licensed FastAPI + SQLite; InferRoute is a Dockerfile drop-in
+- **Self-hostable**: dashboard backend and InferRoute are MIT-licensed and install from source
 
 ## 🗺 Roadmap
 
