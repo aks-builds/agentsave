@@ -31,23 +31,35 @@ def cli():
 
 @cli.command()
 def login():
-    """Authenticate with the AgentSave dashboard."""
-    console.print("[bold cyan]Opening AgentSave dashboard...[/bold cyan]")
-    console.print("Visit [link=https://app.agentsave.io/login]https://app.agentsave.io/login[/link] and paste your token below.")
-    token = click.prompt("Token", hide_input=True)
+    """Connect to your self-hosted AgentSave dashboard."""
+    url = click.prompt("Dashboard URL", default="http://localhost:8000")
+    url = url.rstrip("/")
+    key = click.prompt("API key", hide_input=True)
+
+    import httpx
+    try:
+        with httpx.Client(timeout=5.0) as client:
+            client.get(f"{url}/api/health").raise_for_status()
+            resp = client.get(
+                f"{url}/api/billing",
+                headers={"Authorization": f"Bearer {key}"},
+            )
+            if resp.status_code == 401:
+                console.print("[red]✗ Invalid API key.[/red]")
+                raise SystemExit(1)
+            resp.raise_for_status()
+    except SystemExit:
+        raise
+    except Exception as exc:
+        console.print(f"[red]✗ Cannot reach {url}: {exc}[/red]")
+        raise SystemExit(1)
+
     cfg = _load_config()
-    cfg["token"] = token
+    cfg["api_url"] = f"{url}/api/events"
+    cfg["token"] = key
     cfg["telemetry"] = True
     _save_config(cfg)
-    console.print("[bold green]✓ Logged in. Telemetry enabled.[/bold green]")
-
-
-@cli.command()
-def dashboard():
-    """Open the AgentSave dashboard in your browser."""
-    import webbrowser
-    webbrowser.open("https://app.agentsave.io")
-    console.print("Opening [link=https://app.agentsave.io]https://app.agentsave.io[/link]")
+    console.print("[bold green]✓ Connected. Telemetry enabled.[/bold green]")
 
 
 @cli.command()
@@ -58,9 +70,9 @@ def status():
         console.print("[yellow]Not logged in. Run [bold]agentsave login[/bold] to connect your dashboard.[/yellow]")
         return
     console.print("[bold]AgentSave status[/bold]")
+    console.print(f"  Dashboard: {cfg.get('api_url', '(not connected)')}")
     console.print(f"  Telemetry: {'[green]enabled[/green]' if cfg.get('telemetry') else '[red]disabled[/red]'}")
     console.print(f"  Default budget: {cfg.get('budget', 100_000):,} tokens")
-    console.print("  Run history: see [link=https://app.agentsave.io]app.agentsave.io[/link]")
 
 
 @cli.group()

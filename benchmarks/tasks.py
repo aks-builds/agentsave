@@ -1,0 +1,223 @@
+# benchmarks/tasks.py
+TASKS = [
+    {
+        "id": "tokyo-population",
+        "goal": "What is the population of Tokyo?",
+        "tool_outputs": [
+            "Tokyo metropolitan area population 2024: approximately 37.4 million people, the world's most populous metro area.",
+            "Weather in Tokyo today: sunny, 22°C, humidity 65%.",
+            "Tokyo Stock Exchange: Nikkei 225 up 0.3% today.",
+            "Tokyo city proper population: 13.96 million as of 2023 census.",
+        ],
+        "ground_truth": "37.4 million",
+    },
+    {
+        "id": "telephone-inventor",
+        "goal": "Who invented the telephone?",
+        "tool_outputs": [
+            "Alexander Graham Bell was awarded the first patent for the telephone in 1876.",
+            "The New York Stock Exchange was founded in 1792.",
+            "Bell demonstrated the telephone at the 1876 Philadelphia Centennial Exposition.",
+            "Current gold price: $2,341 per troy ounce.",
+        ],
+        "ground_truth": "Alexander Graham Bell",
+    },
+    {
+        "id": "python-creator",
+        "goal": "Who created the Python programming language?",
+        "tool_outputs": [
+            "Python was created by Guido van Rossum and first released in 1991.",
+            "Java was created by James Gosling at Sun Microsystems.",
+            "Python 3.12 was released in October 2023.",
+            "JavaScript was created by Brendan Eich in 1995.",
+        ],
+        "ground_truth": "Guido van Rossum",
+    },
+    {
+        "id": "mount-everest-height",
+        "goal": "How tall is Mount Everest?",
+        "tool_outputs": [
+            "Mount Everest stands at 8,848.86 metres (29,031.7 feet) above sea level as measured in 2020.",
+            "K2 is the second-highest mountain at 8,611 metres.",
+            "Today's weather on Everest: -30°C, wind 80 km/h.",
+            "The first ascent of Everest was made by Tenzing Norgay and Edmund Hillary in 1953.",
+        ],
+        "ground_truth": "8,848",
+    },
+    {
+        "id": "water-boiling-point",
+        "goal": "At what temperature does water boil at sea level?",
+        "tool_outputs": [
+            "Water boils at 100 degrees Celsius (212 degrees Fahrenheit) at standard atmospheric pressure (sea level).",
+            "Water freezes at 0 degrees Celsius.",
+            "Current humidity in London: 78%.",
+            "The boiling point decreases at higher altitudes due to lower atmospheric pressure.",
+        ],
+        "ground_truth": "100",
+    },
+    {
+        "id": "speed-of-light",
+        "goal": "What is the speed of light?",
+        "tool_outputs": [
+            "The speed of light in a vacuum is approximately 299,792,458 metres per second (about 300,000 km/s).",
+            "The speed of sound in air is approximately 343 m/s at 20°C.",
+            "Current NASA mission status: Voyager 1 is 23.3 billion km from Earth.",
+            "Light from the Sun takes approximately 8 minutes to reach Earth.",
+        ],
+        "ground_truth": "299,792,458",
+    },
+    {
+        "id": "french-capital",
+        "goal": "What is the capital city of France?",
+        "tool_outputs": [
+            "Paris is the capital and largest city of France, with a population of about 2.1 million in the city proper.",
+            "Lyon is France's second-largest city.",
+            "The Eiffel Tower was built in 1889 for the World's Fair.",
+            "France's GDP in 2023 was approximately $3.1 trillion.",
+        ],
+        "ground_truth": "Paris",
+    },
+    {
+        "id": "shakespeare-birth-year",
+        "goal": "In what year was William Shakespeare born?",
+        "tool_outputs": [
+            "William Shakespeare was born in April 1564 in Stratford-upon-Avon, England.",
+            "Shakespeare wrote approximately 37 plays and 154 sonnets.",
+            "The Globe Theatre was built in 1599.",
+            "Shakespeare died on 23 April 1616.",
+        ],
+        "ground_truth": "1564",
+    },
+    {
+        "id": "amazon-river",
+        "goal": "What is the longest river in the world?",
+        "tool_outputs": [
+            "The Amazon River in South America is generally considered the longest river at approximately 6,992 km.",
+            "The Nile River is approximately 6,650 km long.",
+            "The Congo River is the world's deepest river.",
+            "Amazon River discharge: 209,000 cubic metres per second.",
+        ],
+        "ground_truth": "Amazon",
+    },
+    {
+        "id": "dna-structure",
+        "goal": "What is the structure of DNA?",
+        "tool_outputs": [
+            "DNA has a double helix structure, consisting of two strands wound around each other, discovered by Watson and Crick in 1953.",
+            "RNA is single-stranded, unlike DNA.",
+            "The Human Genome Project was completed in 2003.",
+            "CRISPR-Cas9 is a gene editing tool developed in 2012.",
+        ],
+        "ground_truth": "double helix",
+    },
+    {
+        "id": "gravity-constant",
+        "goal": "What is the gravitational constant G?",
+        "tool_outputs": [
+            "The gravitational constant G is approximately 6.674 × 10^-11 N·m²/kg².",
+            "The acceleration due to gravity on Earth's surface is 9.81 m/s².",
+            "Newton's law of universal gravitation was published in 1687.",
+            "The mass of Earth is 5.972 × 10^24 kg.",
+        ],
+        "ground_truth": "6.674",
+    },
+    {
+        "id": "periodic-table-gold",
+        "goal": "What is the atomic number of gold?",
+        "tool_outputs": [
+            "Gold has atomic number 79 and the chemical symbol Au (from Latin aurum).",
+            "Silver has atomic number 47.",
+            "Current gold price: $2,341 per troy ounce.",
+            "Gold melts at 1,064°C.",
+        ],
+        "ground_truth": "79",
+    },
+    {
+        "id": "wwii-end-year",
+        "goal": "In what year did World War II end?",
+        "tool_outputs": [
+            "World War II ended in 1945: Germany surrendered on 8 May (VE Day) and Japan on 2 September (VJ Day).",
+            "World War I ended in 1918.",
+            "The United Nations was founded in 1945.",
+            "The Nuremberg Trials began in November 1945.",
+        ],
+        "ground_truth": "1945",
+    },
+    {
+        "id": "human-chromosomes",
+        "goal": "How many chromosomes do humans have?",
+        "tool_outputs": [
+            "Humans have 46 chromosomes in 23 pairs in most somatic cells.",
+            "Chimpanzees have 48 chromosomes.",
+            "Down syndrome is associated with an extra copy of chromosome 21.",
+            "The Y chromosome is the smallest human chromosome.",
+        ],
+        "ground_truth": "46",
+    },
+    {
+        "id": "moon-distance",
+        "goal": "How far is the Moon from the Earth?",
+        "tool_outputs": [
+            "The average distance from Earth to the Moon is about 384,400 kilometres (238,855 miles).",
+            "The Moon's diameter is 3,474 km.",
+            "Current lunar phase: waxing gibbous.",
+            "The Moon orbits Earth once every 27.3 days.",
+        ],
+        "ground_truth": "384,400",
+    },
+    {
+        "id": "titanic-sinking-year",
+        "goal": "In what year did the Titanic sink?",
+        "tool_outputs": [
+            "The RMS Titanic sank on 15 April 1912 after striking an iceberg in the North Atlantic.",
+            "The Titanic was 269 metres long.",
+            "About 1,500 people died in the Titanic disaster.",
+            "The wreck of the Titanic was discovered in 1985.",
+        ],
+        "ground_truth": "1912",
+    },
+    {
+        "id": "carbon-symbol",
+        "goal": "What is the chemical symbol for carbon?",
+        "tool_outputs": [
+            "Carbon has the chemical symbol C and atomic number 6.",
+            "Carbon dioxide (CO2) has a current atmospheric concentration of about 421 ppm.",
+            "Diamond is a form of pure carbon.",
+            "Carbon is the basis of all known life on Earth.",
+        ],
+        "ground_truth": "C",
+    },
+    {
+        "id": "pi-value",
+        "goal": "What is the value of pi to 5 decimal places?",
+        "tool_outputs": [
+            "Pi (π) is approximately 3.14159 to five decimal places. It is the ratio of a circle's circumference to its diameter.",
+            "Pi has been calculated to over 100 trillion decimal places.",
+            "Pi Day is celebrated on March 14 (3/14).",
+            "Euler's number e is approximately 2.71828.",
+        ],
+        "ground_truth": "3.14159",
+    },
+    {
+        "id": "human-heart-chambers",
+        "goal": "How many chambers does the human heart have?",
+        "tool_outputs": [
+            "The human heart has four chambers: two atria (upper) and two ventricles (lower).",
+            "A fish heart has two chambers.",
+            "The average human heart beats 60-100 times per minute.",
+            "The heart pumps about 5 litres of blood per minute at rest.",
+        ],
+        "ground_truth": "four",
+    },
+    {
+        "id": "internet-inventor",
+        "goal": "Who invented the World Wide Web?",
+        "tool_outputs": [
+            "The World Wide Web was invented by Tim Berners-Lee in 1989 while working at CERN.",
+            "The Internet (as a network) predates the Web and emerged from ARPANET in the 1960s.",
+            "The first website went live on 6 August 1991.",
+            "Tim Berners-Lee founded the W3C in 1994.",
+        ],
+        "ground_truth": "Tim Berners-Lee",
+    },
+]

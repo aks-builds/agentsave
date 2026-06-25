@@ -1,10 +1,10 @@
-# AgentSave — Save 30% on AI agent costs. One line of code.
+# AgentSave — Cut AI agent token costs. One line of code.
 
 [![SDK Tests](https://img.shields.io/badge/SDK_tests-60_passed-brightgreen)](https://github.com/aks-builds/agentsave/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![E2E Tests](https://img.shields.io/badge/E2E_tests-30_passed-brightgreen)](https://github.com/aks-builds/agentsave/actions)
+[![E2E Tests](https://img.shields.io/badge/E2E_tests-coming_soon-lightgrey)](https://github.com/aks-builds/agentsave/actions)
 
-> The first AI agent efficiency platform. Drop-in Python supervisor + real-time cost dashboard + inference router. Zero accuracy loss.
+> The first AI agent efficiency platform. Drop-in Python supervisor + real-time cost dashboard + inference router. Targeting ~30% token reduction with no accuracy loss — see [BENCHMARKS.md](BENCHMARKS.md).
 
 ![AgentSave Dashboard Overview](docs/screenshots/01-overview.png)
 
@@ -39,7 +39,7 @@ flowchart LR
 
 ### SDK Layer
 
-`pip install agentsave`, then wrap any agent with `supervise(agent)`. The supervisor filters irrelevant context, exits early on diminishing returns, and enforces a budget gate — delivering ~30% token reduction with zero changes to your agent's internals.
+`pip install agentsave`, then wrap any agent with `supervise(agent)`. The supervisor filters irrelevant context, exits early on diminishing returns, and enforces a budget gate — currently measuring ~23% token reduction on internal benchmarks, targeting ~30% on GAIA. See [BENCHMARKS.md](BENCHMARKS.md).
 
 ### Dashboard Layer
 
@@ -125,9 +125,9 @@ docker run -d -p 8080:8080 \
 
 - **Drop-in, zero-modification**: `supervise(agent)` wraps any agent framework without touching internals
 - **LLM-free context filter**: TF-IDF cosine similarity — no extra API calls, <1ms overhead per observation
-- **ICLR 2026 research-backed**: 29.68% token reduction on GAIA benchmark (arXiv:2510.26585)
+- **Benchmark-backed**: ~23% token reduction measured on internal task set, targeting ~30% on GAIA — see [BENCHMARKS.md](BENCHMARKS.md)
 - **Five framework adapters**: LangChain, LangGraph, AutoGen, CrewAI, Smolagents — all tested
-- **InferRoute PPD routing**: ~68% Turn 2+ TTFT reduction via append-prefill decode routing (ICML 2026, arXiv:2603.13358)
+- **InferRoute PPD routing**: ~68% Turn 2+ TTFT reduction target via append-prefill decode routing (Enterprise tier, in development)
 - **Opt-in telemetry**: zero PII — only run_id, framework, model, token counts, success flag
 - **Self-hostable**: dashboard backend is MIT-licensed FastAPI + SQLite; InferRoute is a Dockerfile drop-in
 
