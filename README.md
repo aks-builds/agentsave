@@ -85,8 +85,7 @@ print(agent.last_run_state.tokens_consumed)  # see what was used
 **Full stack (SDK + dashboard backend + UI):**
 ```bash
 # 1. Start the dashboard backend
-git clone https://github.com/aks-builds/agentsave-dashboard
-cd agentsave-dashboard && pip install -e .
+pip install agentsave-dashboard
 agentsave-dashboard serve     # prints an API key on first run — copy it
 
 # 2. Connect the SDK to your dashboard
@@ -130,11 +129,9 @@ pip install "agentsave[smolagents]"    # Smolagents
 pip install "agentsave[all]"           # All frameworks
 ```
 
-**Dashboard backend** (not yet on PyPI — install from source):
+**Dashboard backend:**
 ```bash
-git clone https://github.com/aks-builds/agentsave-dashboard
-cd agentsave-dashboard
-pip install -e .
+pip install agentsave-dashboard
 agentsave-dashboard serve --host 127.0.0.1 --port 8000
 ```
 
@@ -145,12 +142,14 @@ cd agentsave-ui && npm install
 npm run dev   # http://localhost:3000
 ```
 
-**InferRoute** (Enterprise, Docker, requires inference cluster):
+**InferRoute** (Enterprise, requires vLLM/sGLang cluster):
 ```bash
+pip install agentsave-inferroute   # Python library + inferroute CLI
+# OR run as a Docker container:
 git clone https://github.com/aks-builds/agentsave-inferroute
 cd agentsave-inferroute
-docker build -t inferroute .
-docker run -p 8080:8080 -e BACKEND_URL=http://vllm:8000 inferroute
+docker build -t agentsave-inferroute .
+docker run -p 8080:8080 -e BACKEND_URL=http://vllm:8000 agentsave-inferroute
 ```
 
 ## 🧪 Verified Test Results
@@ -208,8 +207,9 @@ and the realistic workload results side-by-side.
 | Dashboard UI (browser) | ✅ | 33 Playwright browser tests |
 | CrewAI adapter | ✅ local, ⚠️ CI skipped | Import fails on Python 3.14 (langchain 1.x compat) |
 | InferRoute TTFT reduction | ⚠️ projected | ~68% is architectural projection; not yet measured on real cluster |
-| `pip install agentsave-dashboard` | ❌ | Not on PyPI — install from source |
-| `docker run agentsave/inferroute:latest` | ❌ | Not on Docker Hub — build from source |
+| `pip install agentsave-dashboard` | ✅ | [On PyPI](https://pypi.org/project/agentsave-dashboard/) |
+| `pip install agentsave-inferroute` | ✅ | [On PyPI](https://pypi.org/project/agentsave-inferroute/) |
+| Docker image (inferroute) | ⚠️ build from source | Not yet on Docker Hub — `docker build` from repo |
 
 ## 🏗 Architecture
 
