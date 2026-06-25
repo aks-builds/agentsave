@@ -1,6 +1,6 @@
 # AgentSave — Cut AI agent token costs. One line of code.
 
-[![SDK Tests](https://img.shields.io/badge/SDK_tests-60_passed-brightgreen)](https://github.com/aks-builds/agentsave/actions)
+[![SDK Tests](https://img.shields.io/badge/SDK_tests-88_passed-brightgreen)](https://github.com/aks-builds/agentsave/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![E2E Tests](https://img.shields.io/badge/E2E_tests-coming_soon-lightgrey)](https://github.com/aks-builds/agentsave/actions)
 
@@ -154,19 +154,19 @@ agentsave/              ← SDK (this repo)
 │   ├── adapters/       ← LangChain, LangGraph, AutoGen, CrewAI, Smolagents
 │   ├── telemetry/      ← opt-in async telemetry client
 │   └── cli/            ← agentsave login/status/config
-└── tests/              ← 60 unit tests
+└── tests/              ← 88 tests (unit + integration)
 
 agentsave-dashboard/    ← FastAPI + SQLite backend
 ├── agentsave_dashboard/
 │   ├── routers/        ← /api/events, /api/metrics, /api/tokens, /api/billing
-│   └── services/       ← metrics aggregation, Stripe billing
-└── tests/              ← 47 tests
+│   └── services/       ← metrics aggregation, retention
+└── tests/              ← 26 tests
 
 agentsave-ui/           ← Next.js 16 dashboard
 ├── app/
 │   ├── components/     ← StatCard, charts, RunsTable, ActivityFeed, CommandPalette
 │   └── (routes)/       ← /, /analytics, /runs, /frameworks, /cost, /settings
-└── tests/e2e/          ← 30 Playwright tests
+└── tests/e2e/          ← 54 Playwright tests (3 layers)
 
 agentsave-inferroute/   ← Enterprise inference router
 ├── inferroute/
